@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Cliente REST Twitter</title>
+    <title>Cliente MVC Twitter</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
 
@@ -10,28 +10,43 @@
     <link rel="stylesheet"
           href="http://netdna.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
           th:href="@{/webjars/bootstrap/4.0.0/css/bootstrap.min.css}"/>
+    
+    <!--loader css, adapted from https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_loader5 -->
+    <style>
+        /* Center the loader */
+        #loader {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          z-index: 1;
+          width: 150px;
+          height: 150px;
+          margin: -75px 0 0 -75px;
+          border: 16px solid #f3f3f3;
+          border-radius: 50%;
+          border-top: 16px solid #3498db;
+          width: 120px;
+          height: 120px;
+          -webkit-animation: spin 2s linear infinite;
+          animation: spin 2s linear infinite;
+          display: none;
+        }
 
-    <!-- Mustache template -->
-    <script id="template" type="x-tmpl-mustache">
-        {{#tweets}}
-        <div class="card p-3">
-            <div class="card-body">
-                <h5 class="card-title">
-                    <a href="https://twitter.com/{{fromUser}}"
-                       target="_blank"><span class="fas fa-user"></span> {{fromUser}}</a>
-                    dice en
-                    <a href="https://twitter.com/{{fromUser}}/status/{{idStr}}"
-                       target="_blank"><span class="fab fa-twitter-square"></span> {{idStr}}</a>
-                </h5>
-                <p class="card-text">{{unmodifiedText}}</p>
-            </div>
-        </div>
-        {{/tweets}}
-    </script>
+        @-webkit-keyframes spin {
+          0% { -webkit-transform: rotate(0deg); }
+          100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+    </style>
+    
 </head>
 <body>
 <nav class="navbar navbar-dark bg-dark navbar-expand-sm sticky-top">
-    <a class="navbar-brand" href="#">Cliente REST Twitter</a>
+    <a class="navbar-brand" href="#">Cliente MVC Twitter</a>
     <form class="mx-2 my-auto d-inline w-100" id="search" action="search" method="get">
         <div class="input-group">
             <input class="form-control" type="text" id="q" name="q" placeholder="Escribe algo que quieras buscar"/>
@@ -42,26 +57,35 @@
     </form>
 </nav>
 <div class="container-fluid">
+    <!--
+    <form id="search" action="search" method="get">
+        <div class="row">
+            <input type="text" class="form-control" id="q" name="q"
+                   placeholder="Escribe algo que quieras buscar"/>
+        </div>
+        <div class="row">&nbsp;</div>
+        <div class="row">
+            <button type="submit" class="btn btn-default center-block">Buscar</button>
+        </div>
+    </form>
+    -->
+    <div id="loader"></div>
     <div class="card-columns mt-3" id="resultsBlock"></div>
 </div>
 <script src="http://code.jquery.com/jquery-3.0.0.min.js"
         th:src="@{/webjars/jquery/3.0.0/jquery.min.js}"></script>
-
-
 <script
         src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
         th:src="@{/webjars/bootstrap/4.0.0/js/bootstrap.min.js}"></script>
-
-<script
-        src="https://cdn.jsdelivr.net/npm/mustache@2.3.0/mustache.min.js"
-        th:src="@{/webjars/mustache/2.3.0/mustache.min.js}"></script>
-
 
 <script defer="" src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"
         th:src="@{/webjars/font-awesome/5.0.6/svg-with-js/js/fontawesome-all.js}"></script>
 
 <script th:src="@{/functions.js}"
         src="../static/functions.js"></script>
+    
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.3.0/mustache.min.js"></script>
 
 </body>
 </html>
