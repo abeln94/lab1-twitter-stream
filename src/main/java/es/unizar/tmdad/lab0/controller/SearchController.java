@@ -3,6 +3,7 @@ package es.unizar.tmdad.lab0.controller;
 import es.unizar.tmdad.lab0.service.TwitterLookupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.social.UncategorizedApiException;
 import org.springframework.social.twitter.api.SearchResults;
 import org.springframework.stereotype.Controller;
@@ -40,6 +41,19 @@ public class SearchController {
     @RequestMapping("/template")
     public String template() {
         return "template";
+    }
+    
+    
+    @MessageMapping(/*app*/"/register")
+    public void register(String query) throws Exception {
+        System.out.println("Received search query ("+query+")");
+        twitter.registerQuery(query);
+    }
+    
+    @MessageMapping(/*app*/"/unregister")
+    public void unregister(String query) throws Exception {
+        System.out.println("Received unregister query ("+query+")");
+        twitter.unregisterQuery(query);
     }
     
 }

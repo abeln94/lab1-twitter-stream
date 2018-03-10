@@ -25,17 +25,23 @@ repositories {
 
 ext {
     boostrapVersion = '4.0.0'
-	fontawesomeVersion = '5.0.6'
-	mustacheVersion = '2.3.0'
+    fontawesomeVersion = '5.0.6'
+    //mustacheVersion = '2.3.0'
 }
 
 dependencies {
-	compile('org.springframework.boot:spring-boot-starter-social-twitter')
-	compile('org.springframework.boot:spring-boot-starter-thymeleaf')
-	compile('org.springframework.boot:spring-boot-starter-web')
+    compile('org.springframework.boot:spring-boot-starter-social-twitter')
+    compile('org.springframework.boot:spring-boot-starter-thymeleaf')
+    compile('org.springframework.boot:spring-boot-starter-web')
     compile('org.springframework.boot:spring-boot-devtools')
     compile("org.webjars:bootstrap:${boostrapVersion}")
-	compile("org.webjars:font-awesome:${fontawesomeVersion}")
-	compile("org.webjars.bower:mustache:${mustacheVersion}")
-	testCompile('org.springframework.boot:spring-boot-starter-test')
+    compile("org.webjars:font-awesome:${fontawesomeVersion}")
+    //compile("org.webjars.bower:mustache:${mustacheVersion}")
+    
+    compile("org.springframework.boot:spring-boot-starter-websocket")
+    compile("org.webjars:stomp-websocket:2.3.3")
+    compile("org.webjars:sockjs-client:1.0.2")
+
+    
+    testCompile('org.springframework.boot:spring-boot-starter-test')
 }
