@@ -1,19 +1,8 @@
-/*
- * AUTOR: Abel Naya Forcano
- * NIA: 544125
- * FICHERO: SimpleStreamListener.java
- * TIEMPO: -
- * DESCRIPCI’ON: 
- */
-
 package es.unizar.tmdad.lab0.service;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.handler.annotation.DestinationVariable;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.social.twitter.api.StreamDeleteEvent;
 import org.springframework.social.twitter.api.StreamListener;

@@ -4,6 +4,9 @@ var subscription = null;
 
 $(document).ready(function() {
     
+    $("#navBar").hide();
+    $("#loader").show();
+    
     $("#search").submit(streamOnClick);
     
     $.get('template', function(template) {
@@ -16,6 +19,8 @@ $(document).ready(function() {
     stompClient.connect({}, function(frame) {
         stompClient.debug = null;
         console.log("Connected");
+        $("#navBar").show();
+        $("#loader").hide();
     });
 });
 
@@ -24,20 +29,20 @@ $(document).ready(function() {
 function streamOnClick(event){
     event.preventDefault();
     $("#resultsBlock").empty();
-    $("#loader").show();
     
     var query = $("#q").val();
-    
     
     if(subscription !== null){
         stompClient.send("/app/unregister",{},subscription[1]);
         subscription[0].unsubscribe();
     }
     
-    stompClient.send("/app/register",{},query);
-    subscription = [stompClient.subscribe("/topic/search/"+query, onTweetReceived),query];
-    console.log("subscribed to >>"+query);
-    
+    if(query!=null && query!=""){
+        stompClient.send("/app/register",{},query);
+        subscription = [stompClient.subscribe("/topic/search/"+query, onTweetReceived),query];
+        console.log("subscribed to >>"+query);
+        $("#loader").show();
+    }
 }
 
 
@@ -46,6 +51,8 @@ function onTweetReceived(tweet){
     var rendered = Mustache.render(mustacheTemplate, JSON.parse(tweet.body));
     
     $("#loader").hide();
-    $("#resultsBlock").append(rendered);
-    $("#resultsBlock").scrollTop();
+    $("#resultsBlock").prepend(rendered);
+    if($("#resultsBlock").get(0).childElementCount > 100){
+        $("#resultsBlock").children().last().remove();
+    }
 }
