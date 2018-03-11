@@ -36,69 +36,46 @@ public class TwitterLookupService {
     @Value("${twitter.accessTokenSecret}")
     private String accessTokenSecret;
 
-    public SearchResults search(String query) {
-        Twitter twitter = new TwitterTemplate(consumerKey, consumerSecret, accessToken, accessTokenSecret);
-        return twitter.searchOperations().search(query);
-    }
-
     public SearchResults emptyAnswer() {
         return new SearchResults(Collections.emptyList(), new SearchMetadata(0, 0));
     }
         
         
-    private final HashMap<String, Pair<Integer,Stream>> queries = new HashMap<>();
+    private final HashMap<String, String> user_query = new HashMap<>();
+    private final HashMap<String, Stream> query_stream = new HashMap<>();
     
-    
-    public void unregisterQuery(String query){
-        if ( queries.containsKey(query) ){
-            Pair<Integer, Stream> pair = queries.remove(query);
-            if(pair.getKey()>1){
-                queries.put(query, new Pair<>(pair.getKey()-1,pair.getValue()));
-            }else{
-                pair.getValue().close();
+    public void unregisterUser(String user) {
+        if ( user_query.containsKey(user) ){
+            String query = user_query.remove(user);
+            if(!user_query.containsValue(query)){
+                query_stream.remove(query)
+                        .close();
+                System.out.println("Closed stream with query: "+query);
             }
-        }else{
-            System.out.println("Query '"+query+"' not found, couldn't remove");
         }
     }
     
-    public void registerQuery(String query){
+    public void registerUser(String user, String query) {
         
-        if ( queries.containsKey(query) ){
-            
-            Pair<Integer, Stream> pair = queries.remove(query);
-            queries.put(query, new Pair<>(pair.getKey()+1,pair.getValue()));
-            
-        }else if(queries.size()<10){
+        unregisterUser(user);
         
+        if(query_stream.size() >= 10){
+            System.out.println("Oh oh, exceded number of queries, too bad, lets try anyway");
+        }
+        
+        if(!query_stream.containsKey(query)){
             Twitter twitter = new TwitterTemplate(consumerKey, consumerSecret, accessToken, accessTokenSecret);
             List<StreamListener> list = new ArrayList<>();
             list.add(new SimpleStreamListener(query, smso));
             Stream filter = twitter.streamingOperations().filter(query, list);
-            queries.put(query,new Pair<>(1,filter));
-            System.out.println("Register new query ("+query+")");
-            
-            
-            
-        }
-    }
-
-    private static class Pair<T0, T1> {
-        T0 o0;
-        T1 o1;
-        public Pair(T0 o0, T1 o1) {
-            this.o0 = o0;
-            this.o1 = o1;
-        }
-
-        private T0 getKey() {
-            return o0;
+            query_stream.put(query, filter);
+            System.out.println("Opened stream with query "+query);
         }
         
-        private T1 getValue(){
-            return o1;
-        }
+        user_query.put(user, query);
+            
     }
+
     
 }
 

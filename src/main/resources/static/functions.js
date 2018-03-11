@@ -42,6 +42,8 @@ function streamOnClick(event){
         subscription = [stompClient.subscribe("/topic/search/"+query, onTweetReceived),query];
         console.log("subscribed to >>"+query);
         $("#loader").show();
+    }else{
+        $("#loader").hide();
     }
 }
 

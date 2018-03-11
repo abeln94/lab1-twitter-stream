@@ -10,9 +10,6 @@ import org.springframework.social.twitter.api.StreamWarningEvent;
 import org.springframework.social.twitter.api.Tweet;
 import org.springframework.util.MimeTypeUtils;
 
-/**
- * Clase SimpleStreamListener
- */
 public class SimpleStreamListener implements StreamListener{
 
     
