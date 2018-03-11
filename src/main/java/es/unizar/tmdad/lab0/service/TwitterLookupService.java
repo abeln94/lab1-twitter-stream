@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import javafx.util.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.social.twitter.api.Stream;
@@ -70,7 +69,7 @@ public class TwitterLookupService {
             Pair<Integer, Stream> pair = queries.remove(query);
             queries.put(query, new Pair<>(pair.getKey()+1,pair.getValue()));
             
-        }else{
+        }else if(queries.size()<10){
         
             Twitter twitter = new TwitterTemplate(consumerKey, consumerSecret, accessToken, accessTokenSecret);
             List<StreamListener> list = new ArrayList<>();
@@ -81,6 +80,23 @@ public class TwitterLookupService {
             
             
             
+        }
+    }
+
+    private static class Pair<T0, T1> {
+        T0 o0;
+        T1 o1;
+        public Pair(T0 o0, T1 o1) {
+            this.o0 = o0;
+            this.o1 = o1;
+        }
+
+        private T0 getKey() {
+            return o0;
+        }
+        
+        private T1 getValue(){
+            return o1;
         }
     }
     
