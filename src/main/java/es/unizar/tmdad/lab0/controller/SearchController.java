@@ -4,6 +4,7 @@ import es.unizar.tmdad.lab0.service.TwitterLookupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.social.UncategorizedApiException;
@@ -41,9 +42,9 @@ public class SearchController {
     
     
     @MessageMapping(/*app*/"/register")
-    public void register(String query, SimpMessageHeaderAccessor headerAccessor) throws Exception {
-        System.out.println("Received search query ("+query+") from "+headerAccessor.getSessionId());
-        twitter.registerUser(headerAccessor.getSessionId(), query);
+    public void register(String query, @Header String encodedQuery, SimpMessageHeaderAccessor headerAccessor) throws Exception {
+        System.out.println("Received search query ("+query+") ["+encodedQuery+"] from "+headerAccessor.getSessionId());
+        twitter.registerUser(headerAccessor.getSessionId(), query, encodedQuery);
     }
     
     @MessageMapping(/*app*/"/unregister")

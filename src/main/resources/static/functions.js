@@ -37,10 +37,11 @@ function streamOnClick(event){
         subscription[0].unsubscribe();
     }
     
-    if(query!=null && query!=""){
-        stompClient.send("/app/register",{},query);
-        subscription = [stompClient.subscribe("/topic/search/"+query, onTweetReceived),query];
-        console.log("subscribed to >>"+query);
+    if(query!==null && query!==""){
+        var encodedQuery = encodeURI(query).replaceAll(",","%2C");
+        stompClient.send("/app/register",{encodedQuery:encodedQuery},query);
+        subscription = [stompClient.subscribe("/topic/search/"+encodedQuery, onTweetReceived),query];
+        console.log("subscribed to >>"+encodedQuery);
         $("#loader").show();
     }else{
         $("#loader").hide();

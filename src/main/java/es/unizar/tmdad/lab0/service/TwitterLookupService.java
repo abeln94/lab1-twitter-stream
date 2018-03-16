@@ -1,5 +1,6 @@
 package es.unizar.tmdad.lab0.service;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.social.twitter.api.SearchMetadata;
@@ -11,6 +12,8 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.social.twitter.api.Stream;
@@ -50,12 +53,12 @@ public class TwitterLookupService {
             if(!user_query.containsValue(query)){
                 query_stream.remove(query)
                         .close();
-                System.out.println("Closed stream with query: "+query);
+                System.out.println("Closed stream with query: "+query+" for user "+user);
             }
         }
     }
     
-    public void registerUser(String user, String query) {
+    public void registerUser(String user, String query, String encodedQuery ) {
         
         unregisterUser(user);
         
@@ -66,10 +69,15 @@ public class TwitterLookupService {
         if(!query_stream.containsKey(query)){
             Twitter twitter = new TwitterTemplate(consumerKey, consumerSecret, accessToken, accessTokenSecret);
             List<StreamListener> list = new ArrayList<>();
-            list.add(new SimpleStreamListener(query, smso));
-            Stream filter = twitter.streamingOperations().filter(query, list);
-            query_stream.put(query, filter);
-            System.out.println("Opened stream with query "+query);
+            try {
+                list.add(new SimpleStreamListener(encodedQuery, smso));
+                Stream filter = twitter.streamingOperations().filter(query, list);
+                query_stream.put(query, filter);
+                System.out.println("Opened stream with query "+query+" for user "+user+" on topic "+encodedQuery);
+            } catch (UnsupportedEncodingException ex) {
+                System.out.println("Unsupported query: "+query);
+                return;
+            }
         }
         
         user_query.put(user, query);
