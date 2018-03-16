@@ -28,22 +28,22 @@ $(document).ready(function() {
 
 function streamOnClick(event){
     event.preventDefault();
-    $("#resultsBlock").empty();
+    //$("#resultsBlock").empty();
     
     var query = $("#q").val();
     
     if(subscription !== null){
-        stompClient.send("/app/unregister",{},subscription[1]);
-        subscription[0].unsubscribe();
+        subscription.unsubscribe();
     }
     
     if(query!==null && query!==""){
-        var encodedQuery = encodeURI(query).replaceAll(",","%2C");
-        stompClient.send("/app/register",{encodedQuery:encodedQuery},query);
-        subscription = [stompClient.subscribe("/topic/search/"+encodedQuery, onTweetReceived),query];
-        console.log("subscribed to >>"+encodedQuery);
+        var topic = encodeURI(query).replace(/,/g,"%2C");
+        stompClient.send("/app/register",{topic:topic},query);
+        subscription = stompClient.subscribe("/topic/search/"+topic, onTweetReceived);
+        console.log("subscribed to >>"+topic);
         $("#loader").show();
     }else{
+        stompClient.send("/app/unregister",{},"");
         $("#loader").hide();
     }
 }

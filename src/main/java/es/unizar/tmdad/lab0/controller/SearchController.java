@@ -42,21 +42,21 @@ public class SearchController {
     
     
     @MessageMapping(/*app*/"/register")
-    public void register(String query, @Header String encodedQuery, SimpMessageHeaderAccessor headerAccessor) throws Exception {
-        System.out.println("Received search query ("+query+") ["+encodedQuery+"] from "+headerAccessor.getSessionId());
-        twitter.registerUser(headerAccessor.getSessionId(), query, encodedQuery);
+    public void register(String query, @Header String topic, SimpMessageHeaderAccessor headerAccessor) throws Exception {
+        System.out.println("Received search query ("+query+") ["+topic+"] from "+headerAccessor.getSessionId());
+        twitter.registerUser(headerAccessor.getSessionId(), query, topic);
     }
     
     @MessageMapping(/*app*/"/unregister")
-    public void unregister(String query, SimpMessageHeaderAccessor headerAccessor) throws Exception {
-        System.out.println("Received unregister query ("+query+") from "+headerAccessor.getSessionId());
-        twitter.unregisterUser(headerAccessor.getSessionId());
+    public void unregister(SimpMessageHeaderAccessor headerAccessor) throws Exception {
+        System.out.println("Received unregister from "+headerAccessor.getSessionId());
+        twitter.unregisterUser(headerAccessor.getSessionId(), true);
     }
     
     
     @EventListener
     private void handleSessionDisconnect(SessionDisconnectEvent event) {
-        twitter.unregisterUser(event.getSessionId());
+        twitter.unregisterUser(event.getSessionId(),true);
         System.out.println("user "+event.getSessionId()+" disconnected");
     }
     

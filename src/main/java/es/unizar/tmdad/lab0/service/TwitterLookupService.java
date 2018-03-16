@@ -11,16 +11,21 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.social.twitter.api.Stream;
+import org.springframework.social.twitter.api.StreamDeleteEvent;
 import org.springframework.social.twitter.api.StreamListener;
+import org.springframework.social.twitter.api.StreamWarningEvent;
+import org.springframework.social.twitter.api.Tweet;
+import org.springframework.util.MimeTypeUtils;
 
 @Service
-public class TwitterLookupService {
+public class TwitterLookupService implements StreamListener{
     
     
     @Autowired
@@ -45,44 +50,123 @@ public class TwitterLookupService {
         
         
     private final HashMap<String, String> user_query = new HashMap<>();
-    private final HashMap<String, Stream> query_stream = new HashMap<>();
+    private final HashMap<String, String> queries = new HashMap<>();
+    private Stream stream = null;
+    private String activeQuery = "";
     
-    public void unregisterUser(String user) {
+    public void unregisterUser(String user, boolean update) {
         if ( user_query.containsKey(user) ){
             String query = user_query.remove(user);
             if(!user_query.containsValue(query)){
-                query_stream.remove(query)
-                        .close();
-                System.out.println("Closed stream with query: "+query+" for user "+user);
+                queries.remove(query);
+                if(update) updateStream();
             }
+        }
+    }
+    
+    private void updateStream(){
+        String newActiveQuery = String.join(",", queries.keySet());
+        
+        if(newActiveQuery.equals(activeQuery)){
+            return;
+        }
+        activeQuery = newActiveQuery;
+        
+        if(stream!=null){
+            stream.close();
+            stream = null;
+        }
+        if(!newActiveQuery.isEmpty()){
+            Twitter twitter = new TwitterTemplate(consumerKey, consumerSecret, accessToken, accessTokenSecret);
+            List<StreamListener> list = new ArrayList<>();
+            list.add(this);
+            stream = twitter.streamingOperations().filter(activeQuery, list);
+            System.out.println("Updated stream with query="+activeQuery);
+        }else{
+            System.out.println("Stream closed, nothing to search");
         }
     }
     
     public void registerUser(String user, String query, String encodedQuery ) {
         
-        unregisterUser(user);
+        unregisterUser(user, false);
         
-        if(query_stream.size() >= 10){
-            System.out.println("Oh oh, exceded number of queries, too bad, lets try anyway");
-        }
-        
-        if(!query_stream.containsKey(query)){
-            Twitter twitter = new TwitterTemplate(consumerKey, consumerSecret, accessToken, accessTokenSecret);
-            List<StreamListener> list = new ArrayList<>();
-            try {
-                list.add(new SimpleStreamListener(encodedQuery, smso));
-                Stream filter = twitter.streamingOperations().filter(query, list);
-                query_stream.put(query, filter);
-                System.out.println("Opened stream with query "+query+" for user "+user+" on topic "+encodedQuery);
-            } catch (UnsupportedEncodingException ex) {
-                System.out.println("Unsupported query: "+query);
+        if(!queries.containsKey(query)){
+            
+            if(queries.size() >= 10){
+                System.out.println("Oh oh, exceded number of queries, can't search that, sorry");
+                updateStream();
                 return;
             }
+            
+            queries.put(query,encodedQuery);
         }
         
         user_query.put(user, query);
-            
+        updateStream();
     }
+    
+    
+      
+    
+    private boolean matchesTweet(Tweet tweet, String querie) {
+        String tweetText = tweet.getUnmodifiedText().toLowerCase();
+        
+        for( String word : querie.split("\\s") ){
+            if(!tweetText.contains(word.toLowerCase())){
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    
+    
+
+    
+    //----------   Stream Listener -------------//
+    
+    
+    @Override
+    public void onTweet(Tweet tweet) {
+        System.out.println("Received tweet, sent to:");
+        
+        Map<String, Object> map = new HashMap<>();
+        map.put(MessageHeaders.CONTENT_TYPE,MimeTypeUtils.APPLICATION_JSON);
+        
+        boolean sent = false;
+        
+        for (Map.Entry<String, String> querySet : queries.entrySet()) {
+            String querie = querySet.getKey();
+            String topic = querySet.getValue();
+            
+            if(matchesTweet(tweet, querie)){
+                smso.convertAndSend("/topic/search/"+topic, tweet, map);
+                System.out.println("               >>"+topic);
+                sent = true;
+            }
+        }
+        
+        if(!sent){
+            System.out.println("     >>-nothing-\n"+tweet.getUnmodifiedText());
+        }
+        
+    }
+
+    @Override
+    public void onDelete(StreamDeleteEvent deleteEvent) { }
+
+    @Override
+    public void onLimit(int numberOfLimitedTweets) {
+        System.out.println("StreamListener#onLimit");
+    }
+
+    @Override
+    public void onWarning(StreamWarningEvent warningEvent) {
+        System.out.println("StreamListener#onWarning");
+    }
+
 
     
 }
